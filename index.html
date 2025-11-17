@@ -196,12 +196,14 @@
     </div>
 
     <script>
-        // --- ⚠️ إعدادات GitHub الأساسية - تم إزالة المفتاح القوي ⚠️ ---
+        // --- ⚠️ إعدادات GitHub الأساسية - تم وضع المفتاح المطلوب ⚠️ ---
         
-        // يجب أن يكون مفتاح PAT بصلاحية WRITE المحدودة لهذا المستودع فقط، لتشغيل الـ Action.
-        const GitHub_Action_PAT = 'أدخل هنا مفتاح PAT بصلاحية WRITE المحدودة لهذا المستودع فقط'; 
+        // ************************************************************************************
+        // ⚠️ تحذير: هذا المفتاح قوي (repo) ومكشوف حالياً! يجب إزالته فوراً بعد التجربة الناجحة
+        // ************************************************************************************
+        const GitHub_Action_PAT = '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'; 
         
-        // اسم مستخدمك (Account Owner) - (تأكد من أنه Rxwab)
+        // اسم مستخدمك (Account Owner)
         const repoOwner = 'Rxwab'; 
         
         // اسم مستودعك الحالي (WebGen-AI)
@@ -253,12 +255,8 @@
 
         function publishSite() {
             
-            if (GitHub_Action_PAT === 'أدخل هنا مفتاح PAT بصلاحية WRITE المحدودة لهذا المستودع فقط') {
-                document.getElementById('error-message').textContent = 'خطأ: يجب وضع مفتاح PAT في كود الجافاسكريبت لتشغيل النشر.';
-                document.getElementById('error-message').classList.remove('hidden');
-                return;
-            }
-
+            // تم إزالة شرط التحقق لتشغيل النشر فوراً بناءً على طلبك.
+            
             const payload = collectAllFormData();
             nextAppStage(2); 
             simulateLoading();
