@@ -1,1 +1,36 @@
 
+name: Deploy WebGen Site
+
+on:
+  # هذا السطر يشغل الـ Action فقط عندما يتم تعديل ملف publish_request.json
+  push:
+    paths:
+      - '.github/workflows/publish_request.json'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    # الصلاحيات المطلوبة لتشغيل السكربت (للسماح بقراءة Secrets)
+    permissions:
+      contents: write # مطلوب للسماح لـ api_publisher.py بإنشاء مستودع جديد
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Publisher Script
+        run: python .github/workflows/api_publisher.py
+        env:
+          # تمرير Secret (المفتاح القوي) إلى السكربت
+          DUMMY_GITHUB_PAT: ${{ secrets.DUMMY_GITHUB_PAT }}
+          # تمرير اسم المستخدم الأساسي لتوليد الروابط
+          REPO_OWNER: 'Rxwab'
