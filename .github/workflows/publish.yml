@@ -2,16 +2,16 @@
 name: Deploy WebGen Site
 
 on:
-  # هذا السطر يشغل الـ Action فقط عندما يتم تعديل ملف publish_request.json
+  # 🚀 هذا هو التعديل المطلوب: تم تغيير المسار ليراقب التغييرات في مجلد 'requests'
   push:
     paths:
-      - '.github/workflows/publish_request.json'
+      - 'requests/**' # **هذا السطر هو المفتاح**
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    # الصلاحيات المطلوبة لتشغيل السكربت (للسماح بقراءة Secrets)
+    # الصلاحيات المطلوبة لتشغيل السكربت (للسماح بإنشاء مستودع جديد)
     permissions:
       contents: write # مطلوب للسماح لـ api_publisher.py بإنشاء مستودع جديد
 
@@ -27,10 +27,11 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
+      # 🚨 ملاحظة هامة: يجب أن يكون الملف api_publisher.py موجوداً في مجلد .github/workflows/
       - name: Run Publisher Script
         run: python .github/workflows/api_publisher.py
         env:
-          # تمرير Secret (المفتاح القوي) إلى السكربت
+          # تمرير المفتاح الوهمي (الناشر) من Secrets
           DUMMY_GITHUB_PAT: ${{ secrets.DUMMY_GITHUB_PAT }}
           # تمرير اسم المستخدم الأساسي لتوليد الروابط
           REPO_OWNER: 'Rxwab'
