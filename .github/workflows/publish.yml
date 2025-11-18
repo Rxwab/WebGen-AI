@@ -3,7 +3,7 @@ name: Deploy WebGen Site Publisher
 on:
   push:
     branches:
-      - main  # تأكد من أنه اسم فرعك الرئيسي
+      - main
     paths:
       - 'requests/**'
       
@@ -11,15 +11,15 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    # الصلاحيات مطلوبة للسماح بإنشاء المستودعات
+    # الصلاحيات المطلوبة للسماح بإنشاء المستودعات
     permissions:
       contents: write 
 
     steps:
       - name: Checkout repository (Read files using PAT)
         uses: actions/checkout@v4
-        # نستخدم مفتاح الحساب الناشر لقراءة الملف الذي تم رفعه للتو
         with:
+          # نستخدم مفتاح الحساب الناشر (GenAI210) المخزن في Secrets
           token: ${{ secrets.DUMMY_GITHUB_PAT }} 
 
       - name: Set up Python
@@ -34,7 +34,7 @@ jobs:
       - name: Run Publisher Script
         run: python .github/workflows/api_publisher.py
         env:
-          # تمرير المفتاح السري للحساب الناشر (GenAI210)
+          # تمرير المفتاح السري لحساب GenAI210
           DUMMY_GITHUB_PAT: ${{ secrets.DUMMY_GITHUB_PAT }}
-          # 🚨 التعديل الحاسم: تعيين المالك بشكل ثابت إلى 'GenAI210'
+          # 🚨 التصحيح الحاسم: تعيين المالك بشكل ثابت إلى 'GenAI210' لإنشاء المستودع تحته
           REPO_OWNER: "GenAI210"
