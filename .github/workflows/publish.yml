@@ -1,10 +1,9 @@
 name: Deploy WebGen Site Publisher
 
 on:
-  # 🚨 التعديل الحاسم هنا: هذا السطر يراقب أي ملف جديد يتم إنشاؤه في مجلد 'requests'
   push:
     branches:
-      - main  # أو اسم الفرع الرئيسي الذي تستخدمه
+      - main  # تأكد من أنه اسم فرعك الرئيسي
     paths:
       - 'requests/**'
       
@@ -12,14 +11,14 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    # الصلاحيات المطلوبة للسماح بإنشاء المستودعات
+    # الصلاحيات مطلوبة للسماح بإنشاء المستودعات
     permissions:
       contents: write 
 
     steps:
       - name: Checkout repository (Read files using PAT)
         uses: actions/checkout@v4
-        # تمرير الـ token هنا يضمن أن الـ Action يمكنه قراءة الملفات التي تم رفعها للتو
+        # نستخدم مفتاح الحساب الناشر لقراءة الملف الذي تم رفعه للتو
         with:
           token: ${{ secrets.DUMMY_GITHUB_PAT }} 
 
@@ -35,7 +34,7 @@ jobs:
       - name: Run Publisher Script
         run: python .github/workflows/api_publisher.py
         env:
-          # تمرير المفتاح القوي (الناشر)
+          # تمرير المفتاح السري للحساب الناشر (GenAI210)
           DUMMY_GITHUB_PAT: ${{ secrets.DUMMY_GITHUB_PAT }}
-          # تمرير اسم المستخدم (Rxwab) بشكل ديناميكي
-          REPO_OWNER: ${{ github.repository_owner }}
+          # 🚨 التعديل الحاسم: تعيين المالك بشكل ثابت إلى 'GenAI210'
+          REPO_OWNER: "GenAI210"
