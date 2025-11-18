@@ -3,15 +3,12 @@ import json
 import requests
 import re
 import time
-import base64 # تم نقل الـ import إلى الأعلى
+import base64
+import glob # 🚨 تم إضافة هذه المكتبة للبحث عن الملف
 
 # --- 1. الإعدادات الأساسية ---
-
-# قراءة المتغيرات من بيئة GitHub Actions
 GITHUB_PAT = os.environ.get('DUMMY_GITHUB_PAT')
 REPO_OWNER = os.environ.get('REPO_OWNER')
-
-# مسار مجلد الطلبات الجديد
 REQUESTS_DIR = 'requests' 
 TEMPLATE_FILE_PATH = '.github/workflows/template.html'
 
@@ -119,22 +116,21 @@ def main():
         print("الرجاء التحقق من إعدادات Secrets في GitHub Actions.")
         return
 
-    # 🚨 التعديل الحاسم: البحث عن أحدث ملف JSON في مجلد الطلبات
+    # 🚨 التعديل الحاسم: البحث عن أحدث ملف JSON في مجلد 'requests'
     try:
         print("\n--- 1. قراءة بيانات طلب النشر ---")
-        # الانتظار قليلاً للتأكد من تزامن GitHub (احتياطاً)
         time.sleep(2) 
         
-        # قائمة بجميع ملفات JSON في المجلد
-        all_files = os.listdir(REQUESTS_DIR)
-        json_files = [f for f in all_files if f.endswith('.json')]
+        # استخدام glob للبحث عن جميع ملفات JSON في مجلد 'requests'
+        search_path = os.path.join(REQUESTS_DIR, '*.json')
+        all_requests = glob.glob(search_path)
         
-        if not json_files:
-            print(f"❌ خطأ: لم يتم العثور على ملفات JSON في مجلد '{REQUESTS_DIR}'.")
+        if not all_requests:
+            print(f"❌ خطأ: لم يتم العثور على ملفات طلب JSON في المسار '{search_path}'.")
             return
 
-        # اختيار أحدث ملف تم رفعه (أحدث تاريخ تعديل)
-        newest_file_path = os.path.join(REQUESTS_DIR, sorted(json_files, key=lambda f: os.path.getmtime(os.path.join(REQUESTS_DIR, f)), reverse=True)[0])
+        # اختيار أحدث ملف تم رفعه بناءً على تاريخ تعديله
+        newest_file_path = max(all_requests, key=os.path.getmtime)
         
         print(f"✅ تم تحديد ملف الطلب الجديد: {newest_file_path}")
 
@@ -143,7 +139,7 @@ def main():
             data = json.load(f)
 
     except Exception as e:
-        print(f"❌ فشل قراءة ملف الطلب من مجلد 'requests': {e}")
+        print(f"❌ فشل قراءة ملف الطلب: {e}")
         return
 
     # استخراج البيانات
@@ -164,10 +160,9 @@ def main():
     if not create_github_repo(NEW_REPO_NAME, f"موقع لمنتج: {product_title}"):
         return
 
-    # 3. قراءة قالب HTML وتعبئته
+    # 3. قراءة قالب HTML وتعبئته (نستخدم القالب المضمن)
     print("\n--- 3. تجهيز قالب HTML ---")
     try:
-        # هنا يتم استخدام قالب مُضمن داخل السكربت لتجنب تعقيد القراءة من template.html
         html_template = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -249,10 +244,9 @@ def main():
 
     # 5. تفعيل GitHub Pages
     print("\n--- 5. تفعيل GitHub Pages ---")
-    time.sleep(5)  # ننتظر قليلاً لإعطاء GitHub وقتاً لمعالجة الرفع
+    time.sleep(5) 
     enable_github_pages(NEW_REPO_NAME)
     
-    # 🚨 تم حذف خطوة "تنظيف ملف الطلب" لتبسيط الكود وتجنب أخطاء SHA
 
     final_url = f"https://{REPO_OWNER}.github.io/{NEW_REPO_NAME}/"
     print("\n==============================================")
