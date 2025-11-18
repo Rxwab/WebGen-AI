@@ -23,8 +23,8 @@ def slugify(text):
 
 def create_github_repo(repo_name, description):
     """إنشاء مستودع جديد باستخدام GitHub API تحت اسم المالك المحدد (REPO_OWNER)"""
-    # يجب أن تتضمن هذه النقطة المالك الصحيح
-    url = f"https://api.github.com/user/repos"
+    # نستخدم مسار /user/repos لإنشاء المستودع تحت الحساب المرتبط بالـ PAT (وهو GenAI210)
+    url = f"https://api.github.com/user/repos" 
     headers = {
         "Authorization": f"token {GITHUB_PAT}",
         "Accept": "application/vnd.github.v3+json"
@@ -39,7 +39,6 @@ def create_github_repo(repo_name, description):
         "auto_init": False
     }
     
-    # إذا كان الـ PAT ينتمي لحساب GenAI210، فستُنشأ باسمه تلقائياً.
     response = requests.post(url, headers=headers, json=data)
     
     if response.status_code == 201:
@@ -51,12 +50,11 @@ def create_github_repo(repo_name, description):
     else:
         print(f"❌ فشل إنشاء المستودع {REPO_OWNER}/{repo_name}. الحالة: {response.status_code}")
         print("الاستجابة:", response.json())
-        # هذه الرسالة ستظهر إذا كان الـ PAT غير صحيح أو لا يملك صلاحية repo
         raise Exception(f"فشل إنشاء المستودع: {response.text}")
 
 def upload_file_to_repo(repo_name, file_path, file_content, commit_message):
     """رفع الملف إلى المستودع الجديد"""
-    # نستخدم المالك الصحيح هنا لضمان رفع الملف للمكان الصحيح
+    # نستخدم المالك الذي تم تعريفه في publish.yml (وهو GenAI210)
     url = f"https://api.github.com/repos/{REPO_OWNER}/{repo_name}/contents/{file_path}"
     content_base64 = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
     headers = {
@@ -78,7 +76,6 @@ def upload_file_to_repo(repo_name, file_path, file_content, commit_message):
 
 def enable_github_pages(repo_name):
     """تفعيل GitHub Pages على المستودع الجديد"""
-    # نستخدم المالك الصحيح هنا لتفعيل الصفحات
     url = f"https://api.github.com/repos/{REPO_OWNER}/{repo_name}/pages"
     headers = {
         "Authorization": f"token {GITHUB_PAT}",
@@ -158,10 +155,9 @@ def main():
     if not create_github_repo(NEW_REPO_NAME, f"موقع لمنتج: {product_title}"):
         return
 
-    # 3. قراءة قالب HTML وتعبئته
+    # 3. قراءة قالب HTML وتعبئته (نستخدم القالب المضمن)
     print("\n--- 3. تجهيز قالب HTML ---")
     try:
-        # هنا يتم استخدام قالب مُضمن داخل السكربت لتجنب تعقيد القراءة من ملف خارجي
         html_template = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -233,7 +229,7 @@ def main():
         return
 
     # 4. رفع ملف index.html إلى المستودع الجديد
-    print("\n--- 4. رفع ملف index.html ---")
+    print("\n--- 4. رفع ملف index.html ---\n")
     upload_file_to_repo(
         repo_name=NEW_REPO_NAME,
         file_path="index.html",
@@ -242,7 +238,7 @@ def main():
     )
 
     # 5. تفعيل GitHub Pages
-    print("\n--- 5. تفعيل GitHub Pages ---")
+    print("\n--- 5. تفعيل GitHub Pages ---\n")
     time.sleep(5) 
     enable_github_pages(NEW_REPO_NAME)
     
