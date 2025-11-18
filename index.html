@@ -199,14 +199,13 @@
         // --- ⚠️ إعدادات GitHub الأساسية - تم وضع المفتاح المطلوب ⚠️ ---
         
         // ************************************************************************************
+        // 🚀 مفتاح الحساب الأساسي (DUMMY_GITHUB_PAU) - لتشغيل الـ Action
         // ⚠️ تحذير: هذا المفتاح قوي (repo) ومكشوف حالياً! يجب إزالته فوراً بعد التجربة الناجحة
         // ************************************************************************************
-        const GitHub_Action_PAT = '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'; 
+        const GitHub_Action_PAT = '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'; 
         
-        // اسم مستخدمك (Account Owner)
+        // اسم مستخدمك (المستودع الرئيسي)
         const repoOwner = 'Rxwab'; 
-        
-        // اسم مستودعك الحالي (WebGen-AI)
         const repoName = 'WebGen-AI'; 
         
         // المسار الكامل لملف JSON داخل مجلد workflows
@@ -255,7 +254,7 @@
 
         function publishSite() {
             
-            // تم إزالة شرط التحقق لتشغيل النشر فوراً بناءً على طلبك.
+            // تم إزالة شرط التحقق لتشغيل النشر فوراً
             
             const payload = collectAllFormData();
             nextAppStage(2); 
@@ -288,7 +287,10 @@
             })
             .catch(error => {
                 console.error('Error in GitHub update:', error);
-                document.getElementById('error-message').textContent = `فشل النشر: ${error.message}`;
+                
+                // عرض رسالة الخطأ على الشاشة لسهولة تحديد المشكلة على الهاتف
+                document.getElementById('error-message').textContent = `فشل النشر: ${error.message}`; 
+                
                 document.getElementById('error-message').classList.remove('hidden');
                 nextAppStage(1); 
             });
