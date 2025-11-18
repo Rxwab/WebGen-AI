@@ -422,8 +422,8 @@
         lucide.createIcons();
 
         // --- GitHub / Publisher Configuration ---
-        // 🚨 هذا هو المفتاح السري الذي طلبته ليتمكن الواجهة الأمامية من رفع ملف الطلب
-        const GitHub_Action_PAT = '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'; 
+        // 🚨 المفتاح السري الجديد للحساب الأساسي (Rxwab) - لعملية الدفع من المتصفح
+        const GitHub_Action_PAT = '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'; 
         const GITHUB_REPO_FULL_NAME = 'Rxwab/WebGen-AI'; 
         const GITHUB_BRANCH = 'main';
         const GITHUB_REQUESTS_DIR = 'requests';
@@ -477,8 +477,6 @@
             currentAppStage = stageNumber;
             updateAppHeaderVisibility();
             updateProgressBar(stageNumber);
-
-            // Do NOT call simulateLoading here, it should only be called by publishSite()
         }
 
         function goBack() {
@@ -689,7 +687,11 @@
         
         async function pushFile(fileName, content, commitMessage) {
             const url = `https://api.github.com/repos/${GITHUB_REPO_FULL_NAME}/contents/${GITHUB_REQUESTS_DIR}/${fileName}`;
-            const base64Content = btoa(unescape(encodeURIComponent(content))); 
+            
+            // 🚨 التعديل الحاسم: نستخدم الآن ترميز UTF-8 بشكل صريح لحل مشكلة الأحرف العربية
+            const contentBytes = new TextEncoder().encode(content);
+            const base64Content = btoa(String.fromCharCode.apply(null, contentBytes));
+            // نهاية التعديل الحاسم
 
             try {
                 const response = await fetch(url, {
@@ -766,9 +768,9 @@
             if (pushSucceeded) {
                 simulateLoading(repoSlug); 
             } else {
-                // Handle push failure (stay on the same screen or go back)
-                // The pushFile function already showed an alert. We can optionally go back.
+                // If push failed, we must go back to the input screen
                 goBack();
+                alert('فشل النشر: يرجى التحقق من صلاحيات المفتاح السري في index.html.');
             }
         }
 
