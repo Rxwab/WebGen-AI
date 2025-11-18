@@ -208,11 +208,14 @@
         const repoOwner = 'Rxwab'; 
         const repoName = 'WebGen-AI'; 
         
-        // المسار الكامل لملف JSON داخل مجلد workflows
-        const filePath = '.github/workflows/publish_request.json'; 
+        // --- متغيرات ديناميكية جديدة للتغلب على مشكلة SHA ---
         
-        // رابط API لتعديل ملف JSON في المستودع
-        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+        // المسار الأساسي الجديد: سيتم إنشاء ملف JSON جديد في مجلد 'requests' في كل مرة
+        const timestamp = new Date().getTime();
+        const dynamicFilePath = `requests/request_${timestamp}.json`;
+        
+        // رابط API الجديد
+        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${dynamicFilePath}`;
 
 
         // --- وظائف التحقق وجمع البيانات ---
@@ -254,8 +257,6 @@
 
         function publishSite() {
             
-            // تم إزالة شرط التحقق لتشغيل النشر فوراً
-            
             const payload = collectAllFormData();
             nextAppStage(2); 
             simulateLoading();
@@ -263,13 +264,14 @@
             const jsonContent = JSON.stringify(payload, null, 2);
             const contentBase64 = encodeBase64(jsonContent);
             
+            // Note: No SHA needed since we are creating a NEW file
             const requestBody = {
-                message: "WebGen AI: New site publish request",
+                message: `WebGen AI: Publish request for ${payload.site_name}`,
                 content: contentBase64
             };
 
             fetch(apiUrl, {
-                method: 'PUT',
+                method: 'PUT', // PUT creates a new file if it doesn't exist
                 headers: {
                     'Authorization': `token ${GitHub_Action_PAT}`,
                     'Content-Type': 'application/json'
@@ -283,7 +285,7 @@
                 return response.json();
             })
             .then(data => {
-                console.log('JSON file updated successfully:', data);
+                console.log('New request file created successfully:', data);
             })
             .catch(error => {
                 console.error('Error in GitHub update:', error);
@@ -342,7 +344,8 @@
         function showFinalResult() {
             const siteName = document.getElementById('site-name').value.trim();
             const cleanedSiteName = siteName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-            const finalUrl = `https://${repoOwner}.github.io/${cleanedSiteName || 'webgen-site'}/`;
+            // ملاحظة: الرابط النهائي يعتمد على اسم المستخدم الأساسي 'Rxwab'
+            const finalUrl = `https://${repoOwner}.github.io/${cleanedSiteName || 'webgen-site'}/`; 
             
             document.getElementById('final-site-link').href = finalUrl;
             document.getElementById('final-site-link').textContent = finalUrl;
