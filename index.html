@@ -11,6 +11,7 @@
         :root {
             --primary-blue: #3B82F6; /* Indigo/Blue */
             --secondary-purple: #9333EA; /* Deep Purple */
+            --light-blue: #E0E7FF; /* Blue-100 */
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -26,386 +27,642 @@
             transform: scale(1.03);
             box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.5);
         }
-        /* Input collapse styling */
-        .input-collapse {
-            transition: all 0.3s ease-in-out;
-            max-height: 0;
+
+        /* App UI Styles */
+        .app-container {
+            /* Max width for responsive design (looks like a phone app on desktop) */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: white; /* Clean white background */
+        }
+        .app-input {
+            border: 2px solid #E5E7EB;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #F9FAFB;
+        }
+        .app-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+            background-color: white;
+        }
+        /* Progress Bar Styling */
+        .step-indicator {
+            height: 6px;
+            background-color: #E5E7EB;
+            border-radius: 9999px;
             overflow: hidden;
         }
-        .input-collapse.expanded {
-            max-height: 500px; /* Large enough to hold content */
+        .step-indicator-progress {
+            background-image: linear-gradient(to right, #3B82F6, #9333EA);
+            transition: width 0.5s ease-in-out;
+            height: 100%;
         }
-        /* Progress Bar Animation */
-        #progress-bar {
-            transition: width 0.5s ease-out;
+        /* Selectable Card Styling (Stage 2) */
+        .app-card-select {
+            border: 2px solid #F3F4F6;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .app-card-select:hover {
+            border-color: #D1D5DB;
+        }
+        .app-card-select.selected {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px var(--light-blue);
+            background-color: #F8FAFF;
+        }
+        /* Custom Switch Styling */
+        .switch-toggle:checked {
+            background-color: var(--primary-blue);
+        }
+
+        /* Input Collapse Animation */
+        .input-collapse {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            opacity: 0;
+            margin-top: 0;
+        }
+        .input-collapse.expanded {
+            max-height: 100px; /* Adjust based on content height */
+            opacity: 1;
+            margin-top: 1rem;
+        }
+
+        /* Progress Circle styles for the app UI */
+        .progress-ring {
+            width: 150px;
+            height: 150px;
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.1s linear; /* Use linear for loading simulation */
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        /* Final Result Section Styles */
+        #final-result-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 24px;
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <div class="max-w-4xl mx-auto p-4 md:p-8 space-y-10">
-
-        <header class="text-center pt-8 pb-4">
-            <h1 class="text-5xl font-extrabold text-gray-900 flex items-center justify-center">
-                <i data-lucide="zap" class="w-8 h-8 ml-3 text-indigo-600"></i>
-                WebGen AI
-            </h1>
-            <p class="text-xl text-gray-500 mt-3">أنشئ موقع منتج ثابت (Serverless) في 60 ثانية.</p>
+    <div id="landing-page" class="max-w-md mx-auto">
+        <header class="sticky top-0 z-10 bg-white shadow-sm">
+            <div class="p-4 flex justify-between items-center">
+                <div class="text-2xl font-extrabold cta-gradient bg-clip-text text-transparent">WebGen AI</div>
+                <a href="#pricing-section" class="text-sm font-semibold text-gray-700 hover:text-indigo-600 transition flex items-center">
+                    <i data-lucide="tag" class="w-4 h-4 ml-1"></i>
+                    الأسعار
+                </a>
+            </div>
         </header>
 
-        <div id="app-stage-1" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl space-y-8">
-            <h2 class="text-3xl font-bold border-b pb-3 text-gray-800">1. بيانات الموقع الأساسية</h2>
+        <main class="p-4 space-y-12 pb-16">
+            <section class="text-center pt-8">
+                <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 mb-4">
+                    جديد! إنشاء المواقع بالذكاء الاصطناعي
+                </span>
+                <h1 class="text-4xl font-extrabold leading-tight mb-4">
+                    أنشئ موقعك المتكامل<br> في أقل من دقيقة.
+                </h1>
+                <p class="text-xl text-gray-600 mb-8">
+                    صفحة هبوط، متجر، أو معرض أعمال. لا كود. لا تعقيد. فقط اضغط وابدأ البيع.
+                </p>
+                
+                <button onclick="startApp()" class="w-full inline-flex items-center justify-center py-4 text-white text-lg font-bold rounded-xl cta-gradient shadow-lg">
+                    <i data-lucide="rocket" class="w-6 h-6 ml-2"></i>
+                    ابدأ مجانًا الآن!
+                </button>
+            </section>
             
-            <form id="site-data-form" class="space-y-6">
-                <div>
-                    <label for="site-name" class="block text-sm font-medium text-gray-700 mb-1">اسم المتجر (يستخدم لتوليد رابط الموقع):</label>
-                    <input type="text" id="site-name" name="site-name" required placeholder="مثال: متجر الملابس الفاخر"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition"
-                           minlength="4" maxlength="50">
-                    <p class="mt-1 text-xs text-gray-500">سيتم تحويل هذا الاسم إلى رابط إنجليزي (مثل: matjar-almalabis-alfakhir).</p>
+            <section>
+                <h2 class="text-2xl font-bold text-center mb-6">سرعة لا تصدق في الإنشاء</h2>
+                <div class="w-64 h-96 mx-auto rounded-3xl overflow-hidden shadow-2xl relative bg-white border-4 border-gray-100">
+                    <img src="https://placehold.co/200x350/3B82F6/FFFFFF?text=AI+Builder+Preview" alt="واجهة تطبيق WebGen AI على الهاتف" class="w-full h-full object-cover">
+                    <span class="absolute top-2 left-2 px-2 py-1 bg-white text-gray-800 text-xs rounded-full shadow">شاهد الفيديو</span>
                 </div>
+                <p class="text-center text-sm text-gray-500 mt-4 flex items-center justify-center">
+                    <i data-lucide="check-circle" class="w-4 h-4 ml-1 text-green-500"></i>
+                    مواقع مُصممة لجمهور تيك توك.
+                </p>
+            </section>
 
-                <div>
-                    <label for="site-type" class="block text-sm font-medium text-gray-700 mb-1">فئة المنتج (اختياري - لتحديد التصميم):</label>
-                    <select id="site-type" name="site-type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition">
-                        <option value="ملابس">ملابس / أزياء (تصميم فاخر)</option>
-                        <option value="الكترونيات">الكترونيات</option>
-                        <option value="عقارات">عقارات</option>
-                        <option value="اخرى">منتجات أخرى / عام</option>
-                    </select>
+            <section class="space-y-6">
+                <h2 class="text-2xl font-bold text-center mb-6">لماذا WebGen AI هو خيارك الأفضل؟</h2>
+                <div class="flex items-start space-x-4 space-x-reverse p-4 bg-white rounded-xl shadow-md">
+                    <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                        <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg">تحكم كامل في الشراء</h3>
+                        <p class="text-gray-500 text-sm">اجعل عميلك يشتري عبر رابط مباشر أو يرسل لك رسالة على واتساب لإتمام الطلب.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 space-x-reverse p-4 bg-white rounded-xl shadow-md">
+                    <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg">جاهز للنشر الفوري</h3>
+                        <p class="text-gray-500 text-sm">موقع مُحسّن لمحركات البحث (SEO) ويعمل بسرعة البرق على كل الهواتف.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pricing-section" class="text-center bg-indigo-50 p-6 rounded-xl">
+                 <h3 class="text-xl font-bold mb-4">خطوتك الأولى نحو المبيعات تبدأ الآن!</h3>
+                 <button onclick="startApp()" class="w-full py-4 text-white text-lg font-bold rounded-xl cta-gradient shadow-lg">
+                    <i data-lucide="play" class="w-6 h-6 ml-2"></i>
+                    ابدأ رحلتك الآن
+                 </button>
+            </section>
+        </main>
+
+        <footer class="max-w-md mx-auto text-center py-6 text-sm text-gray-500 border-t mt-8">
+            <p>© 2025 WebGen AI. جميع الحقوق محفوظة.</p>
+            <div class="flex justify-center space-x-4 space-x-reverse mt-4 text-xs">
+                <a href="#" class="hover:text-indigo-600">سياسة الخصوصية</a>
+                <span>•</span>
+                <a href="#" class="hover:text-indigo-600">شروط الاستخدام</a>
+            </div>
+        </footer>
+    </div>
+
+    <div id="webgen-app-ui" class="max-w-md mx-auto w-full hidden app-container shadow-2xl">
+        <header class="sticky top-0 z-20 bg-white p-4 border-b border-gray-100">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="goBack()" class="text-gray-600 hover:text-indigo-600 transition hidden p-1">
+                    <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                </button>
+                <div class="text-xl font-bold cta-gradient bg-clip-text text-transparent">WebGen AI Builder</div>
+                <div class="w-6 h-6"></div> 
+            </div>
+            
+            <div class="flex justify-between text-xs font-semibold text-gray-500 mb-2">
+                <span id="step-title-1" class="text-indigo-600">1. الأساسيات</span>
+                <span id="step-title-2">2. الفئات</span>
+                <span id="step-title-3">3. المنتجات</span>
+                <span id="step-title-4">4. النشر</span>
+            </div>
+            <div class="step-indicator">
+                <div id="app-progress-bar" class="step-indicator-progress w-1/4"></div>
+            </div>
+        </header>
+
+        <section id="app-stage-1" class="p-6 flex flex-col justify-between flex-grow">
+            <div>
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">أولاً: معلومات موقعك الأساسية</h2>
+                <p class="text-gray-500 mb-8">سنستخدم هذه البيانات لإنشاء محتوى موقعك.</p>
+                <form class="space-y-6">
+                    <div>
+                        <label for="app-site-name" class="block text-sm font-medium text-gray-700">اسم الموقع أو النشاط *</label>
+                        <input type="text" id="app-site-name" class="mt-1 block w-full rounded-xl p-3 app-input" placeholder="مثال: متجر الجمال السريع">
+                    </div>
+                    <div>
+                        <label for="app-website-type" class="block text-sm font-medium text-gray-700">نوع الموقع الذي تريد إنشائه *</label>
+                        <select id="app-website-type" class="mt-1 block w-full rounded-xl p-3 app-input appearance-none">
+                            <option value="" disabled selected>اختر نوع الموقع</option>
+                            <option value="Affiliate">صفحة لروابط التسويق بالعمولة</option>
+                            <option value="Products">متجر لعرض وبيع منتجاتي</option>
+                            <option value="Showcase">صفحة لعرض خدماتي أو معرض أعمال</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-4 pt-4 border-t border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-700">ربط روابط التواصل (للتواصل السريع)</h3>
+                        
+                        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
+                            <label class="text-base text-gray-700 flex items-center">
+                                <i data-lucide="instagram" class="w-5 h-5 ml-3 text-pink-500"></i>
+                                انستغرام
+                            </label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" data-link-id="instagram-link-container" onchange="toggleLinkField(this)" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all switch-toggle"></div>
+                            </label>
+                        </div>
+                        <div id="instagram-link-container" class="input-collapse">
+                            <input type="url" id="app-instagram-link" placeholder="الرابط الكامل لحساب انستغرام" class="w-full rounded-xl p-3 app-input">
+                        </div>
+
+                        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
+                            <label class="text-base text-gray-700 flex items-center">
+                                <i data-lucide="message-square-text" class="w-5 h-5 ml-3 text-green-500"></i>
+                                واتساب
+                            </label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" data-link-id="whatsapp-link-container" onchange="toggleLinkField(this)" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all switch-toggle"></div>
+                            </label>
+                        </div>
+                         <div id="whatsapp-link-container" class="input-collapse">
+                            <input type="text" id="app-whatsapp-link" placeholder="رقم واتساب مع رمز الدولة (مثال: +9665XXXXXXXX)" class="w-full rounded-xl p-3 app-input">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <button onclick="nextAppStage(2)" class="w-full py-4 text-white font-bold rounded-xl cta-gradient shadow-lg mt-10">التالي: اختر فئات المنتجات</button>
+        </section>
+        
+        <section id="app-stage-2" class="p-6 flex flex-col justify-between flex-grow hidden">
+            <div>
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">ثانياً: ما هي فئات منتجاتك الرئيسية؟</h2>
+                <p class="text-gray-500 mb-8">اختر الفئات التي تتحدث عنها على تيك توك لتصميم الأقسام.</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div onclick="selectCard(this)" class="app-card-select p-4 rounded-xl flex flex-col items-center cursor-pointer bg-white" data-category="ملابس/أزياء">
+                        <i data-lucide="t-shirt" class="w-10 h-10 mb-2 text-indigo-500"></i>
+                        <span class="text-sm font-medium text-gray-800">ملابس/أزياء</span>
+                    </div>
+                    <div onclick="selectCard(this)" class="app-card-select p-4 rounded-xl flex flex-col items-center cursor-pointer bg-white" data-category="جمال/عناية">
+                        <i data-lucide="sparkles" class="w-10 h-10 mb-2 text-pink-500"></i>
+                        <span class="text-sm font-medium text-gray-800">جمال/عناية</span>
+                    </div>
+                    <div onclick="selectCard(this)" class="app-card-select p-4 rounded-xl flex flex-col items-center cursor-pointer bg-white selected" data-category="مأكولات/حلويات">
+                        <i data-lucide="cake" class="w-10 h-10 mb-2 text-yellow-500"></i>
+                        <span class="text-sm font-medium text-gray-800">مأكولات/حلويات</span>
+                    </div>
+                    <div onclick="selectCard(this)" class="app-card-select p-4 rounded-xl flex flex-col items-center cursor-pointer bg-white" data-category="إلكترونيات">
+                        <i data-lucide="monitor" class="w-10 h-10 mb-2 text-green-500"></i>
+                        <span class="text-sm font-medium text-gray-800">إلكترونيات</span>
+                    </div>
+                    <div onclick="selectCard(this)" class="app-card-select p-4 rounded-xl flex flex-col items-center cursor-pointer bg-white" data-category="منزل/ديكور">
+                        <i data-lucide="home" class="w-10 h-10 mb-2 text-blue-500"></i>
+                        <span class="text-sm font-medium text-gray-800">منزل/ديكور</span>
+                    </div>
+                    <div onclick="selectCard(this)" class="app-card-select p-4 rounded-xl flex flex-col items-center cursor-pointer bg-white" data-category="أخرى">
+                        <i data-lucide="ellipsis" class="w-10 h-10 mb-2 text-gray-500"></i>
+                        <span class="text-sm font-medium text-gray-800">أخرى</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="nextAppStage(3)" class="w-full py-4 text-white font-bold rounded-xl cta-gradient shadow-lg mt-10">التالي: إضافة المنتجات</button>
+        </section>
+
+        <section id="app-stage-3" class="p-6 flex flex-col justify-between flex-grow hidden">
+            <div>
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">ثالثاً: تفاصيل المنتج (الأهم للمبيعات)</h2>
+                <p class="text-gray-500 mb-8">املأ بيانات المنتج لجذب انتباه العميل. (هذا المنتج هو مثال)</p>
+                <div id="product-list" class="space-y-6">
+                    <div class="product-item p-5 border border-gray-200 rounded-xl shadow-lg bg-white space-y-4">
+                        
+                        <input type="file" class="product-image-input hidden" accept="image/*" onchange="previewImage(this, this.parentNode.querySelector('.image-preview'), this.parentNode.querySelector('.placeholder-content'))">
+
+                        <label class="image-upload-area flex justify-center items-center h-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer hover:bg-gray-100 transition overflow-hidden relative" for="product-image-1">
+                            <img class="image-preview w-full h-full object-cover absolute inset-0 hidden" src="" alt="معاينة صورة المنتج">
+                            
+                            <div class="placeholder-content text-center text-gray-500 z-10 p-2">
+                                <i data-lucide="image-plus" class="mx-auto w-8 h-8"></i>
+                                <p class="mt-1 text-sm font-medium">رفع صورة المنتج (اضغط للرفع)</p>
+                            </div>
+                        </label>
+                        <input type="text" class="product-title-input w-full rounded-xl p-3 app-input" placeholder="عنوان المنتج (جذاب ومختصر)" value="ماكينة حلاقة كهربائية فائقة">
+                        <textarea class="product-desc-input w-full rounded-xl p-3 app-input" placeholder="وصف المنتج (قوي ومقنع)" rows="3">توفر حلاقة ناعمة ومريحة دون تهيج، مع عمر بطارية يدوم طويلاً.</textarea>
+                        
+                        <div class="flex space-x-4 space-x-reverse">
+                            <input type="number" class="product-price-input w-1/3 rounded-xl p-3 app-input" value="150" placeholder="السعر">
+                            <select class="product-currency-input w-2/3 rounded-xl p-3 app-input appearance-none">
+                                <option>ريال سعودي (SAR)</option>
+                                <option>دولار أمريكي (USD)</option>
+                                <option>درهم إماراتي (AED)</option>
+                                <option>جنيه مصري (EGP)</option>
+                                <option>دينار كويتي (KWD)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <h4 class="text-md font-semibold text-gray-700 mb-2">كيف يتم الشراء؟</h4>
+                            <div class="flex justify-between items-center p-3 rounded-lg border bg-blue-50">
+                                <label class="text-base text-gray-700 flex items-center">
+                                    <i data-lucide="external-link" class="w-5 h-5 ml-2 text-blue-600"></i>
+                                    رابط شراء مباشر (مثل أمازون/سلة)
+                                </label>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" data-link-id="product-link-container-1" onchange="toggleLinkField(this)" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all switch-toggle"></div>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="product-link-container-1" class="input-collapse expanded">
+                            <input type="url" class="product-buy-link-input w-full rounded-xl p-3 app-input" placeholder="الرابط المباشر لصفحة المنتج" value="https://buy.link/product-1">
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="border-t pt-6">
-                    <div class="flex items-center justify-between cursor-pointer" onclick="toggleCollapse('product-details-collapse')">
-                        <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                            <i data-lucide="package" class="w-5 h-5 ml-2 text-indigo-500"></i>
-                            تفاصيل المنتج
-                        </h3>
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 transition-transform duration-300" id="chevron-product-details-collapse"></i>
-                    </div>
-                    
-                    <div id="product-details-collapse" class="input-collapse expanded mt-4 space-y-4">
-                        <div>
-                            <label for="product-title" class="block text-sm font-medium text-gray-700 mb-1">عنوان المنتج:</label>
-                            <input type="text" id="product-title" name="product-title" required placeholder="مثال: هودي فاخر أسود أساسي"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition">
-                        </div>
-                        
-                        <div class="flex space-x-4">
-                            <div class="flex-1">
-                                <label for="product-price" class="block text-sm font-medium text-gray-700 mb-1">السعر (مع العملة):</label>
-                                <input type="text" id="product-price" name="product-price" required placeholder="مثال: 350 SAR"
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition">
-                            </div>
-                            <div class="flex-1">
-                                <label for="product-image-url" class="block text-sm font-medium text-gray-700 mb-1">رابط صورة المنتج (URL):</label>
-                                <input type="url" id="product-image-url" name="product-image-url" required placeholder="مثال: https://i.ibb.co/image.png"
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition">
-                            </div>
-                        </div>
+                </div>
+            <button onclick="publishSite()" class="w-full py-4 text-white font-bold rounded-xl cta-gradient shadow-lg mt-10">الخطوة الأخيرة: أنشئ موقعي!</button>
+        </section>
 
-                        <div>
-                            <label for="product-desc" class="block text-sm font-medium text-gray-700 mb-1">وصف المنتج القصير (يظهر في الموقع):</label>
-                            <textarea id="product-desc" name="product-desc" rows="3" required placeholder="مثال: هودي قطني فائق النعومة بتصميم Oversized عصري ومريح."
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition"></textarea>
-                        </div>
-                    </div>
+        <section id="app-stage-4" class="p-6 flex flex-col justify-start items-center flex-grow">
+            <div id="loading-state" class="w-full flex flex-col justify-start items-center">
+                <div class="w-full text-center">
+                    <h2 class="text-3xl font-bold mt-16 mb-6 text-gray-800">جاري إنشاء موقعك ونشره الآن...</h2>
+                    <p class="text-gray-500 mb-12">يرجى الانتظار (40 ثانية)، الذكاء الاصطناعي يعمل على البنية التحتية.</p>
+                </div>
+                
+                <div class="progress-ring relative flex items-center justify-center mb-10">
+                    <svg class="progress-ring" viewBox="0 0 100 100">
+                        <circle class="progress-ring__circle" stroke="#E5E7EB" stroke-width="8" fill="transparent" r="46" cx="50" cy="50"/>
+                        <circle id="app-progress-indicator" class="progress-ring__circle" stroke="url(#progress-gradient)" stroke-width="8" fill="transparent" r="46" cx="50" cy="50" style="stroke-dasharray: 289; stroke-dashoffset: 289;"/>
+                        <defs>
+                            <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#9333EA;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <span id="app-progress-percent" class="absolute text-5xl font-extrabold cta-gradient bg-clip-text text-transparent">0%</span>
                 </div>
 
-                <div class="border-t pt-6">
-                    <div class="flex items-center justify-between cursor-pointer" onclick="toggleCollapse('links-collapse')">
-                        <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                             <i data-lucide="link" class="w-5 h-5 ml-2 text-indigo-500"></i>
-                            روابط الشراء والتواصل
-                        </h3>
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 transition-transform duration-300" id="chevron-links-collapse"></i>
-                    </div>
-                    
-                    <div id="links-collapse" class="input-collapse mt-4 space-y-4">
-                        <div>
-                            <label for="buy-link" class="block text-sm font-medium text-gray-700 mb-1">رابط الشراء المباشر (متجر، سلة، زد، إلخ):</label>
-                            <input type="url" id="buy-link" name="buy-link" placeholder="إذا لم يكن لديك رابط، اتركه فارغاً"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition">
-                        </div>
-                        
-                        <div>
-                            <label for="whatsapp-link" class="block text-sm font-medium text-gray-700 mb-1">رابط التواصل عبر واتساب (اختياري):</label>
-                            <input type="url" id="whatsapp-link" name="whatsapp-link" placeholder="مثال: https://wa.me/9665xxxxxxxx"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition">
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" id="publish-btn" class="w-full cta-gradient text-white text-xl font-bold py-4 rounded-xl mt-8 shadow-xl hover:shadow-2xl transition duration-300 flex items-center justify-center">
-                    <i data-lucide="cloud-lightning" class="w-6 h-6 ml-3"></i>
-                    أنشئ موقعي الآن!
-                </button>
-            </form>
-            
-            <p id="error-message" class="text-center text-red-600 font-bold mt-4 hidden">
-                 <i data-lucide="alert-triangle" class="w-5 h-5 ml-2"></i>
-                حدث خطأ ما. الرجاء التحقق من البيانات والمحاولة مرة أخرى.
-            </p>
-        </div>
-        
-        <div id="app-stage-2" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl space-y-6 hidden">
-            <h2 class="text-3xl font-bold text-gray-800">2. يتم الآن بناء موقعك...</h2>
-            
-            <div class="relative pt-1">
-                <div class="flex mb-2 items-center justify-between">
-                    <div>
-                        <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-indigo-200 text-indigo-600">
-                            جاري العمل
-                        </span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-sm font-semibold inline-block text-indigo-600" id="progress-percentage">
-                            1%
-                        </span>
-                    </div>
-                </div>
-                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
-                    <div id="progress-bar" style="width:1%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center cta-gradient rounded"></div>
+                <div id="loading-status-list" class="w-full space-y-4 max-w-xs text-right">
                 </div>
             </div>
 
-            <div id="status-list-container" class="space-y-2">
+            <div id="final-result-section" class="hidden">
+                <i data-lucide="award" class="w-20 h-20 text-yellow-500 mb-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">تهانينا! موقعك جاهز!</h2>
+                
+                <div class="my-6 w-full max-w-sm p-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl shadow-inner">
+                    <p class="text-sm font-medium text-gray-600 mb-2">رابط موقعك (جاهز للربط على منصاتك):</p>
+                    <a id="site-link" href="#" target="_blank" class="text-lg font-bold text-indigo-700 break-all hover:underline">سيتم وضع رابط موقعك هنا بعد النشر</a>
                 </div>
-            
-            <p class="text-sm text-gray-500 mt-4 text-center">يرجى الانتظار، قد تستغرق عملية النشر حوالي 60 ثانية.</p>
-        </div>
-        
-        <div id="app-stage-3" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl space-y-6 hidden">
-            <h2 class="text-3xl font-bold text-green-600 flex items-center justify-center border-b pb-3">
-                 <i data-lucide="check-circle" class="w-7 h-7 ml-3"></i>
-                تم بنجاح!
-            </h2>
-            <p class="text-center text-lg text-gray-700">موقعك أصبح جاهزاً للنشر! يمكنك زيارته الآن ومشاركته.</p>
 
-            <div class="bg-gray-100 p-4 rounded-lg text-center break-all">
-                <p class="text-sm font-semibold text-gray-600 mb-1">رابط الموقع المنشور:</p>
-                <a id="final-site-link" href="#" target="_blank" class="text-xl font-bold text-indigo-600 hover:underline"></a>
+                <div class="bg-red-50 text-red-700 p-3 rounded-lg w-full max-w-sm mb-6 flex items-center justify-center">
+                    <i data-lucide="timer" class="w-5 h-5 ml-2"></i>
+                    <span id="delete-timer" class="font-bold">الموقع سيحذف تلقائيًا بعد 05:00</span>
+                </div>
+
+                <div class="bg-gray-800 text-white p-5 rounded-xl w-full max-w-sm shadow-2xl space-y-3">
+                    <h3 class="text-xl font-bold">حافظ على موقعك وميزاتك!</h3>
+                    <p class="text-sm">
+                        هذا الموقع مؤقت. يمكنك الدفع **20 دولارًا شهريًا** فقط لتحصل على:
+                        <ul class="list-disc list-inside mt-2 text-sm text-gray-300">
+                            <li>نطاق دائم (Domain)</li>
+                            <li>تحليلات متقدمة للمبيعات</li>
+                            <li>دعم واتساب 24/7</li>
+                        </ul>
+                    </p>
+                    <button class="w-full py-3 text-lg font-bold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-500 transition">
+                        الترقية والدفع الآن
+                    </button>
+                </div>
             </div>
-            
-            <button onclick="window.location.reload()" class="w-full bg-gray-200 text-gray-800 text-lg font-bold py-3 rounded-xl hover:bg-gray-300 transition duration-300 flex items-center justify-center mt-6">
-                 <i data-lucide="rotate-ccw" class="w-5 h-5 ml-2"></i>
-                إنشاء موقع جديد
-            </button>
-        </div>
-
+        </section>
     </div>
 
     <script>
-        // --- ⚠️ إعدادات GitHub الأساسية - تم وضع المفتاح المطلوب ⚠️ ---
-        
-        // ************************************************************************************
-        // 🚀 مفتاح الحساب الأساسي (DUMMY_GITHUB_PAU) - لتشغيل الـ Action
-        // ⚠️ تحذير: هذا المفتاح قوي (repo) ومكشوف حالياً! يجب إزالته فوراً بعد التجربة الناجحة
-        // ************************************************************************************
-        const GitHub_Action_PAT = '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'; 
-        
-        // اسم مستخدمك (المستودع الرئيسي)
-        const repoOwner = 'Rxwab'; 
-        const repoName = 'WebGen-AI'; 
-        
-        // --- متغيرات ديناميكية جديدة للتغلب على مشكلة SHA ---
-        
-        // المسار الأساسي الجديد: سيتم إنشاء ملف JSON جديد في مجلد 'requests' في كل مرة
-        const timestamp = new Date().getTime();
-        const dynamicFilePath = `requests/request_${timestamp}.json`;
-        
-        // رابط API الجديد
-        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${dynamicFilePath}`;
+        lucide.createIcons();
 
+        // --- GitHub / Publisher Configuration ---
+        // 🚨 هذا هو المفتاح السري الذي طلبته ليتمكن الواجهة الأمامية من رفع ملف الطلب
+        const GitHub_Action_PAT = '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'; 
+        const GITHUB_REPO_FULL_NAME = 'Rxwab/WebGen-AI'; 
+        const GITHUB_BRANCH = 'main';
+        const GITHUB_REQUESTS_DIR = 'requests';
+        const PUBLISH_ACCOUNT_NAME = 'GenAI210'; 
 
-        // --- وظائف التحقق وجمع البيانات ---
-        
-        function nextAppStage(stage) {
-            document.getElementById('app-stage-1').classList.add('hidden');
-            document.getElementById('app-stage-2').classList.add('hidden');
-            document.getElementById('app-stage-3').classList.add('hidden');
-            document.getElementById('error-message').classList.add('hidden');
+        // Landing Page / App UI interaction
+        const landingPage = document.getElementById('landing-page');
+        const webgenAppUI = document.getElementById('webgen-app-ui');
+        const appStages = ['app-stage-1', 'app-stage-2', 'app-stage-3', 'app-stage-4'];
+        const stepTitles = ['step-title-1', 'step-title-2', 'step-title-3', 'step-title-4'];
+        const progressBar = document.getElementById('app-progress-bar');
+        const siteLinkElement = document.getElementById('site-link');
+        let currentAppStage = 1;
 
-            if (stage === 1) {
-                document.getElementById('app-stage-1').classList.remove('hidden');
-            } else if (stage === 2) {
-                document.getElementById('app-stage-2').classList.remove('hidden');
-            } else if (stage === 3) {
-                document.getElementById('app-stage-3').classList.remove('hidden');
-            }
-        }
-        
-        function collectAllFormData() {
-            return {
-                site_name: document.getElementById('site-name').value.trim(),
-                site_type: document.getElementById('site-type').value.trim(),
-                product_category: document.getElementById('site-type').value.trim(),
-                product_title: document.getElementById('product-title').value.trim(),
-                product_price: document.getElementById('product-price').value.trim(),
-                product_image_url: document.getElementById('product-image-url').value.trim(),
-                product_desc: document.getElementById('product-desc').value.trim(),
-                buy_link: document.getElementById('buy-link').value.trim() || null,
-                whatsapp_link: document.getElementById('whatsapp-link').value.trim() || null
-            };
-        }
-        
-        function encodeBase64(str) {
-            const utf8Bytes = new TextEncoder().encode(str);
-            const base64String = btoa(String.fromCharCode(...utf8Bytes));
-            return base64String;
+        // Timer variables for stage 4 completion
+        let deleteTimerInterval;
+
+        // --- Core App Navigation ---
+        function startApp() {
+            landingPage.classList.add('hidden');
+            webgenAppUI.classList.remove('hidden');
+            nextAppStage(1); // Start at stage 1
         }
 
-        function publishSite() {
-            
-            const payload = collectAllFormData();
-            nextAppStage(2); 
-            simulateLoading();
-            
-            const jsonContent = JSON.stringify(payload, null, 2);
-            const contentBase64 = encodeBase64(jsonContent);
-            
-            // Note: No SHA needed since we are creating a NEW file
-            const requestBody = {
-                message: `WebGen AI: Publish request for ${payload.site_name}`,
-                content: contentBase64
-            };
-
-            fetch(apiUrl, {
-                method: 'PUT', // PUT creates a new file if it doesn't exist
-                headers: {
-                    'Authorization': `token ${GitHub_Action_PAT}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`GitHub API Error: ${response.status} ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('New request file created successfully:', data);
-            })
-            .catch(error => {
-                console.error('Error in GitHub update:', error);
-                
-                // عرض رسالة الخطأ على الشاشة لسهولة تحديد المشكلة على الهاتف
-                document.getElementById('error-message').textContent = `فشل النشر: ${error.message}`; 
-                
-                document.getElementById('error-message').classList.remove('hidden');
-                nextAppStage(1); 
+        function hideAllAppStages() {
+            appStages.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
             });
         }
-        
-        // --- وظائف التفاعل مع الواجهة ---
-        
-        function toggleCollapse(id) {
-            const collapseElement = document.getElementById(id);
-            const chevronElement = document.getElementById(`chevron-${id}`);
-            
-            collapseElement.classList.toggle('expanded');
-            if (collapseElement.classList.contains('expanded')) {
-                chevronElement.style.transform = 'rotate(180deg)';
-            } else {
-                chevronElement.style.transform = 'rotate(0deg)';
-            }
-        }
-        
-        document.getElementById('site-data-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            publishSite();
-        });
-        
-        // --- وظائف محاكاة التحميل والنتيجة ---
-        
-        const loadingSteps = [
-            { title: "تم إرسال الطلب إلى GitHub بنجاح", duration: 1000 },
-            { title: "بدء تشغيل GitHub Action", duration: 1500 },
-            { title: "تجهيز بيئة Python والاعتماديات", duration: 2500 },
-            { title: "تحميل بيانات العميل ومعالجة القالب", duration: 2000 },
-            { title: "الاتصال بـ GitHub API لإنشاء المستودع", duration: 3000 },
-            { title: "إنشاء ملف index.html ورفع الموقع", duration: 2500 },
-            { title: "تفعيل GitHub Pages على المستودع الجديد", duration: 2000 }
-        ];
-        
-        let startTime = null;
-        let totalDuration = loadingSteps.reduce((sum, step) => sum + step.duration, 0);
-        let currentStepIndex = 0;
-        let currentStepStartTime = 0;
 
-        function updateProgressBar(progress) {
-            const progressBar = document.getElementById('progress-bar');
-            const progressPercentage = document.getElementById('progress-percentage');
-            progressBar.style.width = `${progress}%`;
-            progressPercentage.textContent = `${Math.round(progress)}%`;
-        }
-        
-        function showFinalResult() {
-            const siteName = document.getElementById('site-name').value.trim();
-            const cleanedSiteName = siteName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-            // ملاحظة: الرابط النهائي يعتمد على اسم المستخدم الأساسي 'Rxwab'
-            const finalUrl = `https://${repoOwner}.github.io/${cleanedSiteName || 'webgen-site'}/`; 
+        function updateProgressBar(stageNumber) {
+            const widthPercentage = (stageNumber / appStages.length) * 100;
+            progressBar.style.width = widthPercentage + '%';
             
-            document.getElementById('final-site-link').href = finalUrl;
-            document.getElementById('final-site-link').textContent = finalUrl;
-            
-            nextAppStage(3);
-        }
-        
-        function updateProgress(timestamp) {
-            if (!startTime) {
-                startTime = timestamp;
-            }
-            const elapsed = timestamp - startTime;
-            
-            let totalProgress = (elapsed / totalDuration) * 100;
-            if (totalProgress > 100) totalProgress = 100;
-            updateProgressBar(totalProgress);
-
-            const statusListContainer = document.getElementById('status-list-container');
-            
-            if (currentStepIndex < loadingSteps.length) {
-                const step = loadingSteps[currentStepIndex];
-                
-                if (!document.getElementById(`step-${currentStepIndex}`)) {
-                    const stepHtml = `
-                        <div id="step-${currentStepIndex}" class="flex items-center justify-between py-3 border-b border-gray-100">
-                            <span class="text-lg text-gray-700 flex items-center">
-                                <i data-lucide="zap" class="w-5 h-5 ml-2 text-indigo-500"></i>
-                                ${step.title}
-                            </span>
-                            <span id="step-${currentStepIndex}-status"><i data-lucide="loader-2" class="w-5 h-5 text-gray-400 animate-spin"></i></span>
-                        </div>`;
-                    statusListContainer.innerHTML += stepHtml;
-                    lucide.createIcons();
-                    currentStepStartTime = elapsed;
+            stepTitles.forEach((id, index) => {
+                const stepElement = document.getElementById(id);
+                if (index < stageNumber) {
+                    stepElement.classList.remove('text-gray-500');
+                    stepElement.classList.add('text-indigo-600');
+                } else {
+                    stepElement.classList.remove('text-indigo-600');
+                    stepElement.classList.add('text-gray-500');
                 }
+            });
+        }
+
+        function nextAppStage(stageNumber) {
+            hideAllAppStages();
+            const nextId = 'app-stage-' + stageNumber;
+            document.getElementById(nextId).classList.remove('hidden');
+            currentAppStage = stageNumber;
+            updateAppHeaderVisibility();
+            updateProgressBar(stageNumber);
+
+            // Do NOT call simulateLoading here, it should only be called by publishSite()
+        }
+
+        function goBack() {
+            // Stop timer if user navigates back from final result screen
+            clearInterval(deleteTimerInterval);
+            if (currentAppStage > 1) {
+                nextAppStage(currentAppStage - 1);
+            } else {
+                // If on stage 1, go back to landing page
+                webgenAppUI.classList.add('hidden');
+                landingPage.classList.remove('hidden');
+            }
+        }
+
+        function updateAppHeaderVisibility() {
+            const backButton = webgenAppUI.querySelector('header button');
+            if (currentAppStage > 1) {
+                backButton.classList.remove('hidden');
+            } else {
+                backButton.classList.add('hidden');
+            }
+        }
+
+        // --- Final Result Logic ---
+        function startDeleteTimer() {
+            const duration = 5 * 60; // 5 minutes in seconds
+            let timer = duration;
+            const display = document.getElementById('delete-timer');
+
+            function updateTimer() {
+                const minutes = Math.floor(timer / 60);
+                const seconds = timer % 60;
                 
-                if (elapsed - currentStepStartTime >= step.duration) {
-                    document.getElementById(`step-${currentStepIndex}-status`).innerHTML = `<i data-lucide="check" class="w-5 h-5 text-green-500"></i>`;
-                    lucide.createIcons();
-                    
-                    currentStepIndex++;
-                    
-                    if (currentStepIndex === loadingSteps.length) {
-                        showFinalResult();
-                        return; 
+                // Format the time as MM:SS
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                display.textContent = `الموقع سيحذف تلقائيًا بعد ${formattedTime}`;
+
+                if (--timer < 0) {
+                    timer = 0;
+                    clearInterval(deleteTimerInterval);
+                    display.textContent = 'تم حذف الموقع تلقائيًا.';
+                    // Optional: redirect user or show a "deleted" screen
+                }
+            }
+
+            // Clear any existing interval before starting a new one
+            clearInterval(deleteTimerInterval); 
+            
+            // Set the interval to update every second
+            deleteTimerInterval = setInterval(updateTimer, 1000);
+            updateTimer(); // Initial call to display immediately
+        }
+
+        function showFinalResult(repoName) {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('final-result-section').classList.remove('hidden');
+            
+            const finalURL = `https://${PUBLISH_ACCOUNT_NAME}.github.io/${repoName}/`;
+            siteLinkElement.href = finalURL;
+            siteLinkElement.textContent = finalURL;
+            
+            startDeleteTimer();
+        }
+        
+        // --- Stage 3: Image Upload Preview Logic ---
+        function previewImage(input, preview, placeholder) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden'); // Hide the icon/text placeholder
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = "";
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden'); // Show the icon/text placeholder if file is cleared
+            }
+        }
+
+        // --- Stage 1 & 3: Link Field Toggle Animation ---
+        function toggleLinkField(checkbox) {
+            const containerId = checkbox.getAttribute('data-link-id');
+            const container = document.getElementById(containerId);
+            if (checkbox.checked) {
+                container.classList.add('expanded');
+            } else {
+                container.classList.remove('expanded');
+            }
+        }
+
+        // --- Stage 2: Card Selection Logic ---
+        function selectCard(element) {
+            element.classList.toggle('selected');
+        }
+
+        // --- Stage 4: 40-Second Loading Simulation ---
+        const loadingSteps = [
+            { title: "جاري تحليل مدخلاتك واختيار أفضل بنية تصميمية", duration: 7000 },
+            { title: "بدء كتابة محتوى الموقع الأساسي ومقاطع الفيديو (AI Content)", duration: 8000 },
+            { title: "تجميع صور المنتجات وتحسين جودتها وأحجامها", duration: 5000 },
+            { title: "إعداد تحسين محركات البحث (SEO) للمحتوى", duration: 6000 },
+            { title: "تكوين شهادة SSL وحماية الموقع", duration: 4000 },
+            { title: "نشر الموقع على شبكة التوزيع العالمية (CDN)", duration: 10000 }
+        ];
+        const totalDuration = 40000; // 40 seconds total
+
+        function simulateLoading(repoName) {
+            const radius = 46;
+            const totalCircumference = 2 * Math.PI * radius;
+            const progressIndicator = document.getElementById('app-progress-indicator');
+            const progressPercentText = document.getElementById('app-progress-percent');
+            const statusListContainer = document.getElementById('loading-status-list');
+            
+            // Initial setup
+            progressIndicator.style.strokeDashoffset = totalCircumference;
+            progressIndicator.style.strokeDasharray = totalCircumference;
+            statusListContainer.innerHTML = '';
+            
+            let startTime = null;
+            let stepIndex = 0;
+
+            function updateProgress(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = timestamp - startTime;
+                
+                const percentage = Math.min(100, (progress / totalDuration) * 100);
+                
+                // 1. Update Circle and Text
+                const offset = totalCircumference - percentage / 100 * totalCircumference;
+                progressIndicator.style.strokeDashoffset = offset;
+                progressPercentText.textContent = `${Math.floor(percentage)}%`;
+
+                // 2. Update Status List
+                if (stepIndex < loadingSteps.length) {
+                    const stepCompletedAt = loadingSteps.slice(0, stepIndex + 1).reduce((sum, step) => sum + step.duration, 0);
+
+                    if (progress >= stepCompletedAt) {
+                        // Mark previous step as complete (check mark)
+                        const completedStatusElement = document.getElementById(`step-${stepIndex - 1}-status`);
+                        if (completedStatusElement) {
+                            completedStatusElement.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>`;
+                            lucide.createIcons();
+                        }
+
+                        // Move to the next step
+                        stepIndex++;
+
+                        if (stepIndex <= loadingSteps.length) {
+                            const nextStep = loadingSteps[stepIndex - 1];
+                            const statusHtml = `
+                                <div id="step-${stepIndex - 1}" class="flex items-center justify-between py-3 border-b border-gray-100">
+                                    <span class="text-lg text-gray-700 flex items-center">
+                                        <i data-lucide="zap" class="w-5 h-5 ml-2 text-indigo-500"></i>
+                                        ${nextStep.title}
+                                    </span>
+                                    <span id="step-${stepIndex - 1}-status"><i data-lucide="loader-2" class="w-5 h-5 text-gray-400 animate-spin"></i></span>
+                                </div>`;
+                            // Append the new status element to the list
+                            statusListContainer.innerHTML += statusHtml;
+                            lucide.createIcons(); // Re-render icons for new content
+                        }
                     }
                 }
+
+                if (percentage < 100) {
+                    requestAnimationFrame(updateProgress);
+                } else {
+                    // Final state adjustments (CRITICAL: showFinalResult is here only)
+                    progressPercentText.textContent = 'تم!';
+                    // Final checkmark for the last step
+                    const finalElement = document.getElementById(`step-${loadingSteps.length - 1}-status`);
+                    if (finalElement) {
+                        finalElement.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>`;
+                        lucide.createIcons();
+                    }
+                    showFinalResult(repoName); // Show final result with generated repo name
+                }
             }
             
-            requestAnimationFrame(updateProgress);
-        }
-        
-        function simulateLoading() {
-            startTime = null;
-            currentStepIndex = 0;
-            currentStepStartTime = 0;
-            
-            const statusListContainer = document.getElementById('status-list-container');
-            statusListContainer.innerHTML = ''; 
-            
+            // Manually trigger the first step outside the loop to ensure it appears immediately
             const initialStep = loadingSteps[0];
             const initialHtml = `
                 <div id="step-0" class="flex items-center justify-between py-3 border-b border-gray-100">
@@ -418,21 +675,115 @@
             statusListContainer.innerHTML = initialHtml;
             lucide.createIcons();
             
+            // Start the main animation loop
             requestAnimationFrame(updateProgress);
         }
+
+        // --- Core Publishing Function ---
+        function slugify(text) {
+            text = text.toLowerCase();
+            text = text.replace(/[^a-z0-9\s-]/g, ''); 
+            text = text.replace(/[\s]+/g, '-');       
+            return text.trim('-');
+        }
         
+        async function pushFile(fileName, content, commitMessage) {
+            const url = `https://api.github.com/repos/${GITHUB_REPO_FULL_NAME}/contents/${GITHUB_REQUESTS_DIR}/${fileName}`;
+            const base64Content = btoa(unescape(encodeURIComponent(content))); 
+
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GitHub_Action_PAT}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: commitMessage,
+                        content: base64Content,
+                        branch: GITHUB_BRANCH,
+                    }),
+                });
+
+                if (response.ok) {
+                    console.log('JSON file pushed successfully.');
+                    return true;
+                } else {
+                    const errorData = await response.json();
+                    console.error('Failed to push JSON:', response.status, errorData);
+                    alert('فشل رفع ملف الطلب إلى GitHub. يرجى التأكد من صلاحية المفتاح السري (PAT).');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Network or system error during push:', error);
+                alert('حدث خطأ في الاتصال أثناء محاولة رفع ملف الطلب.');
+                return false;
+            }
+        }
+        
+        async function publishSite() {
+            // 1. Get Input Data
+            const siteName = document.getElementById('app-site-name').value;
+            const productTitle = document.querySelector('.product-title-input').value;
+            const productDesc = document.querySelector('.product-desc-input').value;
+            const productPrice = document.querySelector('.product-price-input').value;
+            const productCurrency = document.querySelector('.product-currency-input').value;
+            const buyLink = document.querySelector('.product-buy-link-input').value;
+            const whatsappLink = document.getElementById('app-whatsapp-link').value;
+
+            if (!siteName || !productTitle || !productDesc) {
+                alert('الرجاء إكمال جميع الحقول الإلزامية في الخطوات السابقة.');
+                return;
+            }
+            
+            // For simplicity, we hardcode a placeholder image URL for now
+            const productImageURL = "https://via.placeholder.com/600x800.png?text=WebGen+AI+Product";
+            
+            const requestData = {
+                site_name: siteName,
+                product_title: productTitle,
+                product_price: `${productPrice} ${productCurrency.split(' ')[1] || ''}`,
+                product_image_url: productImageURL,
+                product_desc: productDesc,
+                buy_link: buyLink,
+                whatsapp_link: whatsappLink
+            };
+            
+            const repoSlug = slugify(siteName);
+            const fileName = `${repoSlug}-${Date.now()}.json`;
+            
+            // 2. Switch to Loading Screen
+            nextAppStage(4); 
+
+            // 3. Push the JSON file
+            const pushSucceeded = await pushFile(
+                fileName,
+                JSON.stringify(requestData, null, 2),
+                `WebGen: Create request file for ${productTitle}`
+            );
+
+            // 4. Start Loading Simulation (which finishes by showing the result)
+            if (pushSucceeded) {
+                simulateLoading(repoSlug); 
+            } else {
+                // Handle push failure (stay on the same screen or go back)
+                // The pushFile function already showed an alert. We can optionally go back.
+                goBack();
+            }
+        }
+
+        // Ensure initial elements are set up
         document.addEventListener('DOMContentLoaded', () => {
+            // Set initial state for the progress bar
             updateProgressBar(1);
             
+            // Close all collapse containers on load
             document.querySelectorAll('.input-collapse').forEach(el => {
-                if(el.id !== 'product-details-collapse'){
-                    el.classList.remove('expanded');
-                }
+                el.classList.remove('expanded');
             });
-            document.getElementById('chevron-product-details-collapse').style.transform = 'rotate(180deg)';
-            document.getElementById('chevron-links-collapse').style.transform = 'rotate(0deg)';
 
-            lucide.createIcons();
+            // Expand default product link
+            document.getElementById('product-link-container-1').classList.add('expanded');
         });
     </script>
 
