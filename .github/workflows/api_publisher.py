@@ -4,16 +4,16 @@ import requests
 import re
 import time
 import base64
-import glob # 🚨 تم إضافة هذه المكتبة للبحث عن الملف
+import glob 
+from urllib.parse import quote_plus
 
 # --- 1. الإعدادات الأساسية ---
+# يتم تحميل القيم من متغيرات البيئة التي حددناها في publish.yml
 GITHUB_PAT = os.environ.get('DUMMY_GITHUB_PAT')
 REPO_OWNER = os.environ.get('REPO_OWNER')
 REQUESTS_DIR = 'requests' 
-TEMPLATE_FILE_PATH = '.github/workflows/template.html'
 
 # --- 2. وظائف مساعدة ---
-
 def slugify(text):
     """تحويل النص العربي إلى رابط إنجليزي مقبول (Slug)"""
     text = text.lower()
@@ -22,8 +22,9 @@ def slugify(text):
     return text.strip('-')
 
 def create_github_repo(repo_name, description):
-    """إنشاء مستودع جديد باستخدام GitHub API"""
-    url = "https://api.github.com/user/repos"
+    """إنشاء مستودع جديد باستخدام GitHub API تحت اسم المالك المحدد (REPO_OWNER)"""
+    # يجب أن تتضمن هذه النقطة المالك الصحيح
+    url = f"https://api.github.com/user/repos"
     headers = {
         "Authorization": f"token {GITHUB_PAT}",
         "Accept": "application/vnd.github.v3+json"
@@ -38,38 +39,35 @@ def create_github_repo(repo_name, description):
         "auto_init": False
     }
     
+    # إذا كان الـ PAT ينتمي لحساب GenAI210، فستُنشأ باسمه تلقائياً.
     response = requests.post(url, headers=headers, json=data)
     
     if response.status_code == 201:
-        print(f"✅ تم إنشاء المستودع بنجاح: {repo_name}")
+        print(f"✅ تم إنشاء المستودع بنجاح: {REPO_OWNER}/{repo_name}")
         return True
     elif response.status_code == 422 and "name already exists" in response.text:
-        print(f"⚠️ المستودع {repo_name} موجود بالفعل. سنستخدمه.")
+        print(f"⚠️ المستودع {REPO_OWNER}/{repo_name} موجود بالفعل. سنستخدمه.")
         return True
     else:
-        print(f"❌ فشل إنشاء المستودع {repo_name}. الحالة: {response.status_code}")
+        print(f"❌ فشل إنشاء المستودع {REPO_OWNER}/{repo_name}. الحالة: {response.status_code}")
         print("الاستجابة:", response.json())
+        # هذه الرسالة ستظهر إذا كان الـ PAT غير صحيح أو لا يملك صلاحية repo
         raise Exception(f"فشل إنشاء المستودع: {response.text}")
 
-
 def upload_file_to_repo(repo_name, file_path, file_content, commit_message):
-    """رفع محتوى الملف إلى المستودع"""
+    """رفع الملف إلى المستودع الجديد"""
+    # نستخدم المالك الصحيح هنا لضمان رفع الملف للمكان الصحيح
     url = f"https://api.github.com/repos/{REPO_OWNER}/{repo_name}/contents/{file_path}"
-    
     content_base64 = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
-    
     headers = {
         "Authorization": f"token {GITHUB_PAT}",
         "Accept": "application/vnd.github.v3+json"
     }
-    
     data = {
         "message": commit_message,
         "content": content_base64
     }
-    
     response = requests.put(url, headers=headers, json=data)
-    
     if response.status_code in [200, 201]:
         print(f"✅ تم رفع/تحديث الملف: {file_path}")
         return True
@@ -79,7 +77,8 @@ def upload_file_to_repo(repo_name, file_path, file_content, commit_message):
         raise Exception(f"فشل رفع الملف: {response.text}")
 
 def enable_github_pages(repo_name):
-    """تفعيل GitHub Pages على المستودع المنشور"""
+    """تفعيل GitHub Pages على المستودع الجديد"""
+    # نستخدم المالك الصحيح هنا لتفعيل الصفحات
     url = f"https://api.github.com/repos/{REPO_OWNER}/{repo_name}/pages"
     headers = {
         "Authorization": f"token {GITHUB_PAT}",
@@ -91,9 +90,7 @@ def enable_github_pages(repo_name):
             "path": "/"
         }
     }
-    
     response = requests.post(url, headers=headers, json=data)
-    
     if response.status_code == 201:
         print("✅ تم تفعيل GitHub Pages بنجاح.")
         return True
@@ -113,15 +110,15 @@ def main():
 
     if not GITHUB_PAT or not REPO_OWNER:
         print("❌ خطأ: لم يتم تحميل مفتاح DUMMY_GITHUB_PAT أو REPO_OWNER من البيئة.")
-        print("الرجاء التحقق من إعدادات Secrets في GitHub Actions.")
+        print("الرجاء التحقق من إعدادات Secrets و Environment Variables في publish.yml.")
         return
 
-    # 🚨 التعديل الحاسم: البحث عن أحدث ملف JSON في مجلد 'requests'
+    # 1. قراءة بيانات طلب النشر
     try:
         print("\n--- 1. قراءة بيانات طلب النشر ---")
         time.sleep(2) 
         
-        # استخدام glob للبحث عن جميع ملفات JSON في مجلد 'requests'
+        # البحث عن أحدث ملف JSON
         search_path = os.path.join(REQUESTS_DIR, '*.json')
         all_requests = glob.glob(search_path)
         
@@ -130,20 +127,20 @@ def main():
             return
 
         # اختيار أحدث ملف تم رفعه بناءً على تاريخ تعديله
-        newest_file_path = max(all_requests, key=os.path.getmtime)
+        newest_file_path = max(all_requests, key=os.path.getmtime) 
         
         print(f"✅ تم تحديد ملف الطلب الجديد: {newest_file_path}")
 
-        # قراءة البيانات من الملف الجديد
+        # قراءة البيانات
         with open(newest_file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
     except Exception as e:
-        print(f"❌ فشل قراءة ملف الطلب: {e}")
+        print(f"❌ فشل قراءة ملف الطلب. الخطأ هو: {e}")
         return
 
     # استخراج البيانات
-    site_name = data.get('site_name', 'Default Site')
+    site_name = data.get('site_name', 'موقع تجريبي')
     product_title = data.get('product_title', 'منتج فريد')
     product_price = data.get('product_price', '100 SAR')
     product_image_url = data.get('product_image_url', 'https://via.placeholder.com/600x800.png?text=Product+Image')
@@ -151,18 +148,20 @@ def main():
     buy_link = data.get('buy_link', '#')
     whatsapp_link = data.get('whatsapp_link', '#')
 
+
     # توليد اسم المستودع (Slug)
     repo_slug = slugify(site_name)
     NEW_REPO_NAME = repo_slug if repo_slug else 'webgen-site-' + str(int(time.time()))
 
     # 2. إنشاء المستودع الجديد
-    print(f"\n--- 2. إنشاء المستودع '{NEW_REPO_NAME}' ---")
+    print(f"\n--- 2. إنشاء المستودع '{NEW_REPO_NAME}' تحت المالك {REPO_OWNER} ---")
     if not create_github_repo(NEW_REPO_NAME, f"موقع لمنتج: {product_title}"):
         return
 
-    # 3. قراءة قالب HTML وتعبئته (نستخدم القالب المضمن)
+    # 3. قراءة قالب HTML وتعبئته
     print("\n--- 3. تجهيز قالب HTML ---")
     try:
+        # هنا يتم استخدام قالب مُضمن داخل السكربت لتجنب تعقيد القراءة من ملف خارجي
         html_template = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
