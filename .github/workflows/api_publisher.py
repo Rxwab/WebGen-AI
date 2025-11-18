@@ -3,15 +3,16 @@ import json
 import requests
 import re
 import time
+import base64 # تم نقل الـ import إلى الأعلى
 
 # --- 1. الإعدادات الأساسية ---
 
 # قراءة المتغيرات من بيئة GitHub Actions
 GITHUB_PAT = os.environ.get('DUMMY_GITHUB_PAT')
-REPO_OWNER = os.environ.get('REPO_OWNER') # يجب أن يكون اسم المستخدم الخاص بك (Rxwab)
+REPO_OWNER = os.environ.get('REPO_OWNER')
 
-# مسار الملفات
-JSON_FILE_PATH = '.github/workflows/publish_request.json'
+# مسار مجلد الطلبات الجديد
+REQUESTS_DIR = 'requests' 
 TEMPLATE_FILE_PATH = '.github/workflows/template.html'
 
 # --- 2. وظائف مساعدة ---
@@ -19,9 +20,8 @@ TEMPLATE_FILE_PATH = '.github/workflows/template.html'
 def slugify(text):
     """تحويل النص العربي إلى رابط إنجليزي مقبول (Slug)"""
     text = text.lower()
-    text = re.sub(r'[^a-z0-9\s-]', '', text) # إزالة الأحرف غير المسموح بها
-    text = re.sub(r'[\s]+', '-', text)       # استبدال المسافات بـ '-'
-    # يمكنك إضافة مكتبة خارجية مثل python-slugify لدعم أفضل للعربية إذا لزم الأمر
+    text = re.sub(r'[^a-z0-9\s-]', '', text) 
+    text = re.sub(r'[\s]+', '-', text)       
     return text.strip('-')
 
 def create_github_repo(repo_name, description):
@@ -59,7 +59,6 @@ def upload_file_to_repo(repo_name, file_path, file_content, commit_message):
     """رفع محتوى الملف إلى المستودع"""
     url = f"https://api.github.com/repos/{REPO_OWNER}/{repo_name}/contents/{file_path}"
     
-    # GitHub API يتطلب Base64 للمحتوى
     content_base64 = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
     
     headers = {
@@ -96,25 +95,22 @@ def enable_github_pages(repo_name):
         }
     }
     
-    # محاولة تفعيل الصفحات
     response = requests.post(url, headers=headers, json=data)
     
     if response.status_code == 201:
         print("✅ تم تفعيل GitHub Pages بنجاح.")
         return True
-    elif response.status_code == 409: # يحدث إذا كانت الصفحات مفعلة بالفعل
+    elif response.status_code == 409: 
         print("⚠️ GitHub Pages مفعلة بالفعل أو في طور التفعيل.")
         return True
     else:
         print(f"❌ فشل تفعيل GitHub Pages. الحالة: {response.status_code}")
         print("الاستجابة:", response.json())
-        # قد لا نحتاج لرفع خطأ هنا لأن الرفع سيتم لاحقا، لكن الأفضل المحاولة.
         return False
         
 # --- 3. المنطق الرئيسي ---
 
 def main():
-    import base64
 
     print("--- WebGen AI Publisher Started ---")
 
@@ -123,15 +119,31 @@ def main():
         print("الرجاء التحقق من إعدادات Secrets في GitHub Actions.")
         return
 
-    # قراءة بيانات طلب النشر من ملف JSON
+    # 🚨 التعديل الحاسم: البحث عن أحدث ملف JSON في مجلد الطلبات
     try:
-        with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
+        print("\n--- 1. قراءة بيانات طلب النشر ---")
+        # الانتظار قليلاً للتأكد من تزامن GitHub (احتياطاً)
+        time.sleep(2) 
+        
+        # قائمة بجميع ملفات JSON في المجلد
+        all_files = os.listdir(REQUESTS_DIR)
+        json_files = [f for f in all_files if f.endswith('.json')]
+        
+        if not json_files:
+            print(f"❌ خطأ: لم يتم العثور على ملفات JSON في مجلد '{REQUESTS_DIR}'.")
+            return
+
+        # اختيار أحدث ملف تم رفعه (أحدث تاريخ تعديل)
+        newest_file_path = os.path.join(REQUESTS_DIR, sorted(json_files, key=lambda f: os.path.getmtime(os.path.join(REQUESTS_DIR, f)), reverse=True)[0])
+        
+        print(f"✅ تم تحديد ملف الطلب الجديد: {newest_file_path}")
+
+        # قراءة البيانات من الملف الجديد
+        with open(newest_file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-    except FileNotFoundError:
-        print(f"❌ خطأ: ملف الطلب {JSON_FILE_PATH} غير موجود.")
-        return
-    except json.JSONDecodeError:
-        print(f"❌ خطأ: ملف الطلب {JSON_FILE_PATH} فارغ أو غير صالح.")
+
+    except Exception as e:
+        print(f"❌ فشل قراءة ملف الطلب من مجلد 'requests': {e}")
         return
 
     # استخراج البيانات
@@ -147,18 +159,15 @@ def main():
     repo_slug = slugify(site_name)
     NEW_REPO_NAME = repo_slug if repo_slug else 'webgen-site-' + str(int(time.time()))
 
-    # 1. إنشاء المستودع الجديد
-    print(f"\n--- 1. إنشاء المستودع '{NEW_REPO_NAME}' ---")
+    # 2. إنشاء المستودع الجديد
+    print(f"\n--- 2. إنشاء المستودع '{NEW_REPO_NAME}' ---")
     if not create_github_repo(NEW_REPO_NAME, f"موقع لمنتج: {product_title}"):
         return
 
-    # 2. قراءة قالب HTML
+    # 3. قراءة قالب HTML وتعبئته
+    print("\n--- 3. تجهيز قالب HTML ---")
     try:
-        # نحن الآن في مسار .github/workflows. يجب أن نقرأ القالب من هذا المجلد.
-        # لغرض التجربة، سنفترض وجود ملف template.html في نفس المجلد
-        # يمكنك استبدال هذا برابط أو جلب القالب من ملف آخر
-        
-        # --- هذا هو محتوى قالب HTML الذي يجب أن تضعه في ملف template.html بنفس المجلد ---
+        # هنا يتم استخدام قالب مُضمن داخل السكربت لتجنب تعقيد القراءة من template.html
         html_template = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -224,14 +233,13 @@ def main():
 </body>
 </html>
         """
-        # --- نهاية محتوى قالب HTML ---
-
+        
     except Exception as e:
         print(f"❌ خطأ في تجهيز قالب HTML: {e}")
         return
 
-    # 3. رفع ملف index.html إلى المستودع الجديد
-    print("\n--- 3. رفع ملف index.html ---")
+    # 4. رفع ملف index.html إلى المستودع الجديد
+    print("\n--- 4. رفع ملف index.html ---")
     upload_file_to_repo(
         repo_name=NEW_REPO_NAME,
         file_path="index.html",
@@ -239,21 +247,13 @@ def main():
         commit_message=f"WebGen: Initial commit for {product_title}"
     )
 
-    # 4. تفعيل GitHub Pages
-    print("\n--- 4. تفعيل GitHub Pages ---")
-    # ننتظر قليلاً لإعطاء GitHub وقتاً لمعالجة الرفع
-    time.sleep(5) 
+    # 5. تفعيل GitHub Pages
+    print("\n--- 5. تفعيل GitHub Pages ---")
+    time.sleep(5)  # ننتظر قليلاً لإعطاء GitHub وقتاً لمعالجة الرفع
     enable_github_pages(NEW_REPO_NAME)
     
-    # 5. تنظيف ملف الطلب (لإيقاف الـ Action من التكرار)
-    print("\n--- 5. تنظيف ملف الطلب ---")
-    upload_file_to_repo(
-        repo_name=REPO_OWNER, 
-        file_path=JSON_FILE_PATH,
-        file_content="{}", 
-        commit_message="WebGen: Cleared publish request"
-    )
-    
+    # 🚨 تم حذف خطوة "تنظيف ملف الطلب" لتبسيط الكود وتجنب أخطاء SHA
+
     final_url = f"https://{REPO_OWNER}.github.io/{NEW_REPO_NAME}/"
     print("\n==============================================")
     print(f"✅ تم النشر بنجاح! رابط موقع العميل: {final_url}")
