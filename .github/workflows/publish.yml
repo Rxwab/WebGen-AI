@@ -1,37 +1,41 @@
-
-name: Deploy WebGen Site
+name: Deploy WebGen Site Publisher
 
 on:
-  # 🚀 هذا هو التعديل المطلوب: تم تغيير المسار ليراقب التغييرات في مجلد 'requests'
+  # 🚨 التعديل الحاسم هنا: هذا السطر يراقب أي ملف جديد يتم إنشاؤه في مجلد 'requests'
   push:
+    branches:
+      - main  # أو اسم الفرع الرئيسي الذي تستخدمه
     paths:
-      - 'requests/**' # **هذا السطر هو المفتاح**
-
+      - 'requests/**'
+      
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    # الصلاحيات المطلوبة لتشغيل السكربت (للسماح بإنشاء مستودع جديد)
+    # الصلاحيات المطلوبة للسماح بإنشاء المستودعات
     permissions:
-      contents: write # مطلوب للسماح لـ api_publisher.py بإنشاء مستودع جديد
+      contents: write 
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (Read files using PAT)
         uses: actions/checkout@v4
+        # تمرير الـ token هنا يضمن أن الـ Action يمكنه قراءة الملفات التي تم رفعها للتو
+        with:
+          token: ${{ secrets.DUMMY_GITHUB_PAT }} 
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Install dependencies
+      - name: Install dependencies (requests, glob)
         run: pip install requests
 
-      # 🚨 ملاحظة هامة: يجب أن يكون الملف api_publisher.py موجوداً في مجلد .github/workflows/
+      # 🚀 تشغيل السكربت الرئيسي
       - name: Run Publisher Script
         run: python .github/workflows/api_publisher.py
         env:
-          # تمرير المفتاح الوهمي (الناشر) من Secrets
+          # تمرير المفتاح القوي (الناشر)
           DUMMY_GITHUB_PAT: ${{ secrets.DUMMY_GITHUB_PAT }}
-          # تمرير اسم المستخدم الأساسي لتوليد الروابط
-          REPO_OWNER: 'Rxwab'
+          # تمرير اسم المستخدم (Rxwab) بشكل ديناميكي
+          REPO_OWNER: ${{ github.repository_owner }}
